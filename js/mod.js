@@ -13,12 +13,20 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.0",
+  num: "1.1",
   name: "Start Of A Game",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
-	<h3>v1.0 - Start Of A Game - 3/22/2026</h3><br>
+<h3>v1.1 - Upgrade Tree - 3/22/2026</h3><br>
+	
+		- Added upgrade points<br>
+		- Added an upgrade tree after spending an hour trying to find out how<br>
+		- Added some rebirth upgrades and challenges<br>
+		- Implemented loop V<br>
+
+
+	<h3><br>v1.0 - Start Of A Game - 3/22/2026</h3><br>
 		- Added prestige, rebirth, and the main gimick, loop<br>
 		- Added a few upgrades<br>
 		- Added a few milestones<br>
@@ -61,9 +69,22 @@ function getPointGen() {
   if (hasUpgrade("p", 13)) gain = gain.times(upgradeEffect("p", 13));
   if (hasUpgrade("p", 14)) gain = gain.times(upgradeEffect("p", 14));
   if (hasMilestone("l", 3)) gain = gain.times(2);
+  if (hasUpgrade("r", 12)) gain = gain.times(upgradeEffect("r", 12));
+  if (hasUpgrade("r", 13)) gain = gain.times(upgradeEffect("r", 13));
+  if (hasUpgrade("r", 21)) gain = gain.times(upgradeEffect("r", 21));
+  if (hasUpgrade("r", 22)) gain = gain.times(upgradeEffect("r", 22));
+  if (hasUpgrade("u", 22)) gain = gain.times(upgradeEffect("u", 22));
+  if (hasUpgrade("u", 31)) gain = gain.times(upgradeEffect("u", 31));
+  if (hasUpgrade("u", 32)) gain = gain.times(upgradeEffect("u", 32));
+  if (hasUpgrade("u", 33)) gain = gain.times(upgradeEffect("u", 33));
 
   if (inChallenge("p", 11)) gain = gain.div(20);
-  return gain;
+  if (inChallenge("r", 11)) gain = gain.sqrt();
+
+  exp = new Decimal(1);
+
+  if (hasUpgrade("u", 11)) exp = exp.times(1.04);
+  return gain.pow(exp);
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
@@ -75,13 +96,13 @@ function addedPlayerData() {
 var displayThings = [
   function () {
     if (!player.points.eq(-69))
-      return "Current endgame: loop 3, 1 rebirth point";
+      return "Current endgame: complete the upgrade tree";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return player.r.points.gte(new Decimal("1"));
+  return (player.u.upgrades.length = 6);
 }
 
 // Less important things beyond this point!
