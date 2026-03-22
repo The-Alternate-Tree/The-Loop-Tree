@@ -23,11 +23,18 @@ addLayer("p", {
     if (hasChallenge("p", 11)) mult = mult.times(3);
     if (hasMilestone("l", 3)) mult = mult.times(2);
     if (hasUpgrade("r", 11)) mult = mult.times(upgradeEffect("r", 11));
+    if (hasUpgrade("r", 13)) mult = mult.times(upgradeEffect("r", 13));
+    if (hasChallenge("r", 11)) mult = mult.times(5);
+    if (hasChallenge("r", 12)) mult = mult.times(15);
+    if (hasUpgrade("u", 21)) mult = mult.times(upgradeEffect("u", 21));
+
     return mult;
   },
   gainExp() {
     // Calculate the exponent on main currency from bonuses
     exp = new Decimal(1);
+    if (inChallenge("r", 12)) exp = exp.times(0.6);
+
     return exp;
   },
   row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -44,10 +51,12 @@ addLayer("p", {
     return hasMilestone("l", 1);
   },
   passiveGeneration() {
-    return false ? 1 : 0;
+    return hasMilestone("l", 5) ? 2 : 0;
   },
   doReset(resettingLayer) {
     let keep = [];
+    if (hasMilestone("l", 4) && resettingLayer == "r") keep.push("challenges");
+    if (hasChallenge("r", 11) && resettingLayer == "r") keep.push("upgrades");
 
     if (layers[resettingLayer].row > this.row) layerDataReset("p", keep);
   },
@@ -62,6 +71,7 @@ addLayer("p", {
       effect() {
         // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
         let ret = player.p.points.add(1).pow(0.5);
+        if (hasUpgrade("r", 14)) ret = player.p.points.add(1).pow(0.64);
         return ret;
       },
       effectDisplay() {
@@ -156,6 +166,8 @@ addLayer("r", {
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
+    if (hasMilestone("l", 4)) mult = mult.times(3);
+    if (hasMilestone("l", 5)) mult = mult.times(4);
 
     return mult;
   },
@@ -202,6 +214,294 @@ addLayer("r", {
         return "*" + format(this.effect()) + "";
       }, // Add formatting to the effect
     },
+    12: {
+      title: "More Points",
+      description: "Gain more points.",
+      cost: new Decimal(1),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 3.25;
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    13: {
+      title: "Smaller Boosts",
+      description: "Gain more points and prestige points.",
+      cost: new Decimal(1),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 1.75;
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    14: {
+      title: "Better Effect",
+      description: "Base increase uses a better formula.",
+      cost: new Decimal(3),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 0.16;
+        return ret;
+      },
+      effectDisplay() {
+        return "+" + format(this.effect()) + " exp";
+      }, // Add formatting to the effect
+    },
+    21: {
+      title: "Lucky Number",
+      description: "X7.77 points.",
+      cost: new Decimal(150),
+      unlocked() {
+        return hasMilestone("l", 4);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 7.77;
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    22: {
+      title: "Small Boost",
+      description: "X3.75 points.",
+      cost: new Decimal(2500),
+      unlocked() {
+        return hasMilestone("l", 4);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 3.75;
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+  },
+  challenges: {
+    11: {
+      unlocked() {
+        return hasMilestone("l", 4);
+      },
+      name: "Rooted Points",
+      challengeDescription: "Point gain is square rooted",
+      goalDescription: "Reach 100,000 prestige points",
+      rewardDescription:
+        "Keep prestige upgrades on rebirth and X5 prestige points",
+      canComplete: function () {
+        return player.p.points.gte(1e5);
+      },
+    },
+    12: {
+      unlocked() {
+        return hasMilestone("l", 4);
+      },
+      name: "Prestige Decrease",
+      challengeDescription: "Prestige points are ^0.6",
+      goalDescription: "Reach 100,000 prestige points",
+      rewardDescription: "X15 prestige points",
+      canComplete: function () {
+        return player.p.points.gte(1e5);
+      },
+    },
+  },
+});
+addLayer("u", {
+  name: "upgrade points", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "U", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  branches: ["p"],
+  startData() {
+    return {
+      unlocked: false,
+      points: new Decimal(0),
+      best: new Decimal(0),
+    };
+  },
+  color: "Yellow",
+  requires: new Decimal(1e18), // Can be a function that takes requirement increases into account
+  resource: "upgrade points", // Name of prestige currency
+  baseResource: "points", // Name of resource prestige is based on
+  baseAmount() {
+    return player.points;
+  }, // Get the current amount of baseResource
+  type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.2, // Prestige currency exponent
+  gainMult() {
+    // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1);
+
+    return mult;
+  },
+  gainExp() {
+    // Calculate the exponent on main currency from bonuses
+    exp = new Decimal(1);
+    return exp;
+  },
+  row: 2, // Row the layer is in on the tree (0 is the first row)
+  hotkeys: [
+    {
+      key: "u",
+      description: "U: Reset for upgrade points",
+      onPress() {
+        if (canReset(this.layer)) doReset(this.layer);
+      },
+    },
+  ],
+  layerShown() {
+    return hasMilestone("l", 5);
+  },
+  passiveGeneration() {
+    return false ? 1 : 0;
+  },
+  doReset(resettingLayer) {
+    let keep = [];
+
+    if (layers[resettingLayer].row > this.row) layerDataReset("u", keep);
+  },
+  upgrades: {
+    11: {
+      title: "Small Point Power",
+      description: "Points are ^1.04.",
+      cost: new Decimal(1),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 2.75;
+        return ret;
+      },
+    },
+    21: {
+      title: "Prestige Increase",
+      description: "X4 prestige points.",
+      cost() {
+        return new Decimal(2).pow(player.u.upgrades.length);
+      },
+      branches: [11],
+      unlocked() {
+        return hasUpgrade("u", 11);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 4;
+        return ret;
+      },
+    },
+    22: {
+      title: "Point Increase",
+      description: "X3 points.",
+      cost() {
+        return new Decimal(2).pow(player.u.upgrades.length);
+      },
+      branches: [11],
+
+      unlocked() {
+        return hasUpgrade("u", 11);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 3;
+        return ret;
+      },
+    },
+    31: {
+      branches: [21],
+
+      title: "Rebirth Based",
+      description: "Rebirth points boost points.",
+      cost() {
+        return new Decimal(5).times(player.u.upgrades.length - 2);
+      },
+      unlocked() {
+        return hasUpgrade("u", 21) && hasUpgrade("u", 22);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.r.points.add(1).pow(0.13);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    32: {
+      branches: [21, 22],
+
+      title: "Upgrade Based",
+      description: "Upgrade points boost points.",
+      cost() {
+        return new Decimal(5).times(player.u.upgrades.length - 2);
+      },
+      unlocked() {
+        return hasUpgrade("u", 21) && hasUpgrade("u", 22);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.u.points.add(1).pow(0.46);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    33: {
+      branches: [22],
+
+      title: "Looped Based",
+      description: "Loops boost points.",
+      cost() {
+        return new Decimal(5).times(player.u.upgrades.length - 2);
+      },
+      unlocked() {
+        return hasUpgrade("u", 21) && hasUpgrade("u", 22);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.l.points.add(1).pow(0.76);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+  },
+  tabFormat: {
+    "upgrade points": {
+      content: [
+        "main-display",
+        "prestige-button",
+        "resource-display",
+        ["blank", "5px"], // Height
+
+        [
+          "display-text",
+          function () {
+            return "Be careful! Upgrade costs increase based on the amount of upgrade point upgrades you've bought and you can't respect them.";
+          },
+          { "font-size": "17px" },
+        ],
+        ["upgrade-tree", [[11], [21, 22], [31, 32, 33]]],
+      ],
+    },
   },
 });
 addLayer("l", {
@@ -232,6 +532,7 @@ addLayer("l", {
   gainExp() {
     // Calculate the exponent on main currency from bonuses
     scaling = new Decimal(1);
+    if (player.l.points.gte(4)) scaling = scaling.div(1.2);
     return scaling;
   },
   row: 100, // Row the layer is in on the tree (0 is the first row)
@@ -301,23 +602,40 @@ addLayer("l", {
     1: {
       requirementDescription: "Loop I",
       done() {
-        return player[this.layer].best.gte(1);
+        return player[this.layer].points.gte(1);
       }, // Used to determine when to give the milestone
-      effectDescription: "Unlock prestige",
+      effectDescription: "Unlock prestige.",
     },
     2: {
       requirementDescription: "Loop II",
       done() {
-        return player[this.layer].best.gte(2);
+        return player[this.layer].points.gte(2);
       }, // Used to determine when to give the milestone
-      effectDescription: "Double points and unlock a prestige challenge",
+      effectDescription: "Double points and unlock a prestige challenge.",
     },
     3: {
       requirementDescription: "Loop III",
       done() {
-        return player[this.layer].best.gte(3);
+        return player[this.layer].points.gte(3);
       }, // Used to determine when to give the milestone
-      effectDescription: "Unlock rebirth and double prestige points and points",
+      effectDescription:
+        "Unlock rebirth and double prestige points and points.",
+    },
+    4: {
+      requirementDescription: "Loop IV",
+      done() {
+        return player[this.layer].points.gte(4);
+      }, // Used to determine when to give the milestone
+      effectDescription:
+        "Keep prestige challenges on rebirth. Unlock rebirth challenges, you don't have to do them in any order i guess. Triple rebirth points. Also unlock more rebirth upgrades.",
+    },
+    5: {
+      requirementDescription: "Loop V",
+      done() {
+        return player[this.layer].points.gte(5);
+      }, // Used to determine when to give the milestone
+      effectDescription:
+        "Unlock upgrade points and autogain prestige points. Also X4 rebirth points.",
     },
   },
   tooltip() {
