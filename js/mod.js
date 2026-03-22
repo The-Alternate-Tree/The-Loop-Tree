@@ -96,13 +96,13 @@ function addedPlayerData() {
 var displayThings = [
   function () {
     if (!player.points.eq(-69))
-      return "Current endgame: complete the upgrade tree";
+      return "Current endgame: complete the upgrade tree, or 50 total upgrade points for endgame screen";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return (player.u.upgrades.length = 6);
+  return player.u.total.gte(50);
 }
 
 // Less important things beyond this point!
