@@ -13,12 +13,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.1",
-  name: "Start Of A Game",
+  num: "1.11",
+  name: "Achievements",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
-<h3>v1.1 - Upgrade Tree - 3/22/2026</h3><br>
+<h3><br>v1.11 - Achievements - 3/23/2026</h3><br>
+		- Added achievements<br>
+		- Changed the first upgrade point upgrade's name<br>
+
+
+<h3><br>v1.1 - Upgrade Tree - 3/22/2026</h3><br>
 	
 		- Added upgrade points<br>
 		- Added an upgrade tree after spending an hour trying to find out how<br>
