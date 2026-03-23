@@ -347,7 +347,7 @@ addLayer("u", {
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
-
+    if (hasUpgrade("u", 41)) mult = mult.times(3);
     return mult;
   },
   gainExp() {
@@ -378,7 +378,7 @@ addLayer("u", {
   },
   upgrades: {
     11: {
-      title: "Small Point Power",
+      title: "Increased Exponent",
       description: "Points are ^1.04.",
       cost: new Decimal(1),
       unlocked() {
@@ -483,6 +483,23 @@ addLayer("u", {
         return "*" + format(this.effect()) + "";
       }, // Add formatting to the effect
     },
+    41: {
+      branches: [31],
+
+      title: "More Upgrade Points",
+      description: "Triple upgrade points.",
+      cost() {
+        return new Decimal(40).times(player.u.upgrades.length - 5);
+      },
+      unlocked() {
+        return hasUpgrade("u", 21) && hasUpgrade("u", 22);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 3;
+        return ret;
+      },
+    },
   },
   tabFormat: {
     "upgrade points": {
@@ -499,7 +516,7 @@ addLayer("u", {
           },
           { "font-size": "17px" },
         ],
-        ["upgrade-tree", [[11], [21, 22], [31, 32, 33]]],
+        ["upgrade-tree", [[11], [21, 22], [31, 32, 33], [41]]],
       ],
     },
   },
@@ -533,6 +550,8 @@ addLayer("l", {
     // Calculate the exponent on main currency from bonuses
     scaling = new Decimal(1);
     if (player.l.points.gte(4)) scaling = scaling.div(1.2);
+    if (player.l.points.gte(6)) scaling = scaling.div(1.6);
+
     return scaling;
   },
   row: 100, // Row the layer is in on the tree (0 is the first row)
@@ -646,5 +665,117 @@ addLayer("l", {
       format(player.points.log(getNextAt("l")).times(100)) +
       "%)"
     );
+  },
+});
+addLayer("ach", {
+  name: "achievements", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "🥇", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+    };
+  },
+  color: "Yellow",
+  tooltip: "achievements",
+  type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+
+  row: "side", // Row the layer is in on the tree (0 is the first row)
+
+  layerShown() {
+    return true;
+  },
+  achievements: {
+    11: {
+      name: "Looped",
+      done() {
+        return player.l.points.gte(1);
+      },
+      tooltip: "Reach loop I.",
+    },
+    12: {
+      name: "Half Way",
+      done() {
+        return player.points.gte(250);
+      },
+      tooltip: "Get 250 points.",
+    },
+    13: {
+      name: "Challenges? On Row I?",
+      done() {
+        return player.l.points.gte(2);
+      },
+      tooltip: "Reach loop II.",
+    },
+    14: {
+      name: "OH THANK GOD!",
+      done() {
+        return hasChallenge("p", 11);
+      },
+      tooltip: "Complete 'Divided Points'.",
+    },
+    15: {
+      name: "Prestiged",
+      done() {
+        return hasUpgrade("p", 14);
+      },
+      tooltip: "Get the last prestige upgrade.",
+    },
+    21: {
+      name: "New Layer, Yay",
+      done() {
+        return player.l.points.gte(3);
+      },
+      tooltip: "Reach loop III.",
+    },
+    22: {
+      name: "An Upgraded Upgrade?",
+      done() {
+        return hasUpgrade("r", 14);
+      },
+      tooltip: "Buy the fourth rebirth upgrade.",
+    },
+    23: {
+      name: "Quad-Loop",
+      done() {
+        return player.l.points.gte(4);
+      },
+      tooltip: "Reach loop IV.",
+    },
+    24: {
+      name: "Challenger",
+      done() {
+        return hasChallenge("r", 11) && hasChallenge("r", 12);
+      },
+      tooltip: "Complete 2 rebirth challenges.",
+    },
+    25: {
+      name: "Upgrader",
+      done() {
+        return hasUpgrade("r", 22);
+      },
+      tooltip: "Buy 6 rebirth upgrades.",
+    },
+    31: {
+      name: "Yet Another Layer",
+      done() {
+        return player.l.points.gte(5);
+      },
+      tooltip: "Reach loop V.",
+    },
+    32: {
+      name: "Double-Digits",
+      done() {
+        return player.u.points.gte(10);
+      },
+      tooltip: "Have 10 upgrade points.",
+    },
+    33: {
+      name: "Now It Looks Like TPT",
+      done() {
+        return player.u.upgrades.length > 5;
+      },
+      tooltip: "Buy 3 rows of the upgrade point tree.",
+    },
   },
 });
