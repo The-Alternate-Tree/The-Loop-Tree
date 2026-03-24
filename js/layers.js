@@ -489,7 +489,7 @@ addLayer("u", {
       title: "More Upgrade Points",
       description: "Triple upgrade points.",
       cost() {
-        return new Decimal(40).times(player.u.upgrades.length - 5);
+        return new Decimal(45);
       },
       unlocked() {
         return hasUpgrade("u", 21) && hasUpgrade("u", 22);
