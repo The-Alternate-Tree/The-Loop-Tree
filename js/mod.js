@@ -13,11 +13,16 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.11",
-  name: "Achievements",
+  num: "1.12",
+  name: "Negative Fix",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.12 - Negative Fix - 3/24/2026</h3><br>
+		- Fixed upgrade point upgrade 41's cost<br>
+		- Changed 41's cost (40 > 45)<br>
+
+
 <h3><br>v1.11 - Achievements - 3/23/2026</h3><br>
 		- Added achievements<br>
 		- Changed the first upgrade point upgrade's name<br>
