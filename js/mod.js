@@ -13,11 +13,18 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.12",
-  name: "Negative Fix",
+  num: "1.2",
+  name: "Ascending From Heaven",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.2 - Ascending From Heaven - 3/28/2026</h3><br>
+		- Added loop VI<br>
+		- Added a new layer, ascension<br>
+    - Added 2 buyables<br>
+		- Added 2 achievements<br>
+		- Significantly increased loop cost scalling from 6 loops onwards (^2.26 scalling) <br>
+
 <h3><br>v1.12 - Negative Fix - 3/24/2026</h3><br>
 		- Fixed upgrade point upgrade 41's cost<br>
 		- Changed 41's cost (40 > 45)<br>
@@ -87,7 +94,9 @@ function getPointGen() {
   if (hasUpgrade("u", 31)) gain = gain.times(upgradeEffect("u", 31));
   if (hasUpgrade("u", 32)) gain = gain.times(upgradeEffect("u", 32));
   if (hasUpgrade("u", 33)) gain = gain.times(upgradeEffect("u", 33));
-
+  if (hasUpgrade("a", 11)) gain = gain.times(upgradeEffect("a", 11));
+  if (hasUpgrade("a", 12)) gain = gain.times(upgradeEffect("a", 12));
+  gain = gain.times(buyableEffect("a", 11));
   if (inChallenge("p", 11)) gain = gain.div(20);
   if (inChallenge("r", 11)) gain = gain.sqrt();
 
@@ -105,14 +114,13 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69))
-      return "Current endgame: complete the upgrade tree, or 50 total upgrade points for endgame screen";
+    if (!player.points.eq(-69)) return "Current endgame: reach loop 6";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return player.u.total.gte(50);
+  return hasMilestone("l", 7);
 }
 
 // Less important things beyond this point!
