@@ -114,7 +114,7 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69)) return "Current endgame: reach loop 6";
+    if (!player.points.eq(-69)) return "Current endgame: reach loop 7";
   },
 ];
 
