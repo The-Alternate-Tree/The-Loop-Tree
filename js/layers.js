@@ -348,6 +348,8 @@ addLayer("u", {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
     if (hasUpgrade("u", 41)) mult = mult.times(3);
+    if (hasMilestone("l", 6)) mult = mult.times(4);
+    mult = mult.times(buyableEffect("a", 12));
     return mult;
   },
   gainExp() {
@@ -521,6 +523,174 @@ addLayer("u", {
     },
   },
 });
+addLayer("a", {
+  name: "ascend", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  branches: ["r"],
+  startData() {
+    return {
+      unlocked: false,
+      points: new Decimal(0),
+      best: new Decimal(0),
+    };
+  },
+  color: "Orange",
+  requires: new Decimal(1000), // Can be a function that takes requirement increases into account
+  resource: "ascension points", // Name of prestige currency
+  baseResource: "upgrade points", // Name of resource prestige is based on
+  baseAmount() {
+    return player.u.points;
+  }, // Get the current amount of baseResource
+  type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.63, // Prestige currency exponent
+  gainMult() {
+    // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1);
+
+    return mult;
+  },
+  gainExp() {
+    // Calculate the exponent on main currency from bonuses
+    exp = new Decimal(1);
+    return exp;
+  },
+  row: 3, // Row the layer is in on the tree (0 is the first row)
+  hotkeys: [
+    {
+      key: "a",
+      description: "A: Reset for ascension points",
+      onPress() {
+        if (canReset(this.layer)) doReset(this.layer);
+      },
+    },
+  ],
+  layerShown() {
+    return hasMilestone("l", 6);
+  },
+  passiveGeneration() {
+    return false ? 1 : 0;
+  },
+  doReset(resettingLayer) {
+    let keep = [];
+
+    if (layers[resettingLayer].row > this.row) layerDataReset("a", keep);
+  },
+  upgrades: {
+    11: {
+      title: "BIG Increase",
+      description: "X100 points.",
+      cost: new Decimal(1),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 100;
+        return ret;
+      },
+    },
+    12: {
+      title: "Buyable Unlock",
+      description: "Unlock 2 buyables and X10 points.",
+      cost: new Decimal(5),
+      unlocked() {
+        return player[this.layer].unlocked;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 10;
+        return ret;
+      },
+    },
+  },
+  buyables: {
+    11: {
+      title: "Repeatable Point Increase",
+      cost(x) {
+        return new Decimal(2).times(new Decimal.pow(2, x));
+      },
+      effect(x) {
+        // Effects of owning x of the items, x is a decimal
+
+        eff = new Decimal.pow(8, x);
+        return eff;
+      },
+      unlocked() {
+        return hasUpgrade("a", 12);
+      },
+      display() {
+        // Everything else displayed in the buyable button after the title
+        let data = tmp[this.layer].buyables[this.id];
+        return (
+          "Cost: " +
+          format(data.cost) +
+          " ascension points\n\
+        Amount: " +
+          player[this.layer].buyables[this.id] +
+          "/12\n\
+        X" +
+          format(data.effect) +
+          " point gain "
+        );
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(
+          this.layer,
+          this.id,
+          getBuyableAmount(this.layer, this.id).add(1)
+        );
+      },
+      purchaseLimit: new Decimal(12),
+    },
+    12: {
+      title: "Repeatable Upgrade Increase",
+      cost(x) {
+        return new Decimal(3).times(new Decimal.pow(2.7, x));
+      },
+      effect(x) {
+        // Effects of owning x of the items, x is a decimal
+
+        eff = new Decimal.pow(2.6, x);
+        return eff;
+      },
+      unlocked() {
+        return hasUpgrade("a", 12);
+      },
+      display() {
+        // Everything else displayed in the buyable button after the title
+        let data = tmp[this.layer].buyables[this.id];
+        return (
+          "Cost: " +
+          format(data.cost) +
+          " ascension points\n\
+        Amount: " +
+          player[this.layer].buyables[this.id] +
+          "/6\n\
+        X" +
+          format(data.effect) +
+          " upgrade point gain "
+        );
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(
+          this.layer,
+          this.id,
+          getBuyableAmount(this.layer, this.id).add(1)
+        );
+      },
+      purchaseLimit: new Decimal(6),
+    },
+  },
+});
 addLayer("l", {
   name: "loop", // This is optional, only used in a few places, If absent it just uses the layer id.
   symbol: "L", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -550,7 +720,7 @@ addLayer("l", {
     // Calculate the exponent on main currency from bonuses
     scaling = new Decimal(1);
     if (player.l.points.gte(4)) scaling = scaling.div(1.2);
-    if (player.l.points.gte(6)) scaling = scaling.div(1.6);
+    if (player.l.points.gte(6)) scaling = scaling.div(2.26);
 
     return scaling;
   },
@@ -655,6 +825,20 @@ addLayer("l", {
       }, // Used to determine when to give the milestone
       effectDescription:
         "Unlock upgrade points and autogain prestige points. Also X4 rebirth points.",
+    },
+    6: {
+      requirementDescription: "Loop VI",
+      done() {
+        return player[this.layer].points.gte(6);
+      }, // Used to determine when to give the milestone
+      effectDescription: "Unlock ascension points and X4 upgrade points.",
+    },
+    7: {
+      requirementDescription: "Loop VII",
+      done() {
+        return player[this.layer].points.gte(7);
+      }, // Used to determine when to give the milestone
+      effectDescription: "You've beaten the game for now...",
     },
   },
   tooltip() {
@@ -776,6 +960,20 @@ addLayer("ach", {
         return player.u.upgrades.length > 5;
       },
       tooltip: "Buy 3 rows of the upgrade point tree.",
+    },
+    34: {
+      name: "It's Time For Row 31",
+      done() {
+        return player.a.points.gte(1);
+      },
+      tooltip: "Ascend.",
+    },
+    35: {
+      name: "It's About To Get Real Fast....",
+      done() {
+        return hasUpgrade("a", 12);
+      },
+      tooltip: "Unlock the first 2 buyables.",
     },
   },
 });
