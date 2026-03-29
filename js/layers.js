@@ -58,6 +58,8 @@ addLayer("p", {
     if (hasMilestone("l", 4) && resettingLayer == "r") keep.push("challenges");
     if (hasChallenge("r", 11) && resettingLayer == "r") keep.push("upgrades");
 
+    if (hasMilestone("l", 7)) keep.push("upgrades", "challenges");
+
     if (layers[resettingLayer].row > this.row) layerDataReset("p", keep);
   },
   upgrades: {
@@ -190,10 +192,13 @@ addLayer("r", {
     return hasMilestone("l", 3);
   },
   passiveGeneration() {
-    return false ? 1 : 0;
+    return hasMilestone("l", 8) ? 1 : 0;
   },
   doReset(resettingLayer) {
     let keep = [];
+    if (hasMilestone("l", 7) && resettingLayer == "a") keep.push("challenges");
+    if (hasUpgrade("a", 14) && resettingLayer == "a") keep.push("upgrades");
+    if (hasMilestone("l", 8) && resettingLayer == "a") keep.push("upgrades");
 
     if (layers[resettingLayer].row > this.row) layerDataReset("r", keep);
   },
@@ -371,10 +376,11 @@ addLayer("u", {
     return hasMilestone("l", 5);
   },
   passiveGeneration() {
-    return false ? 1 : 0;
+    return hasMilestone("l", 8) ? 1 : 0;
   },
   doReset(resettingLayer) {
     let keep = [];
+    if (hasUpgrade("a", 14) && resettingLayer == "a") keep.push("upgrades");
 
     if (layers[resettingLayer].row > this.row) layerDataReset("u", keep);
   },
@@ -547,12 +553,16 @@ addLayer("a", {
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
-
+    if (hasUpgrade("lp", 12)) mult = mult.times(upgradeEffect("lp", 12));
     return mult;
   },
   gainExp() {
     // Calculate the exponent on main currency from bonuses
     exp = new Decimal(1);
+    if (hasMilestone("l", 7)) exp = exp.times(1.2);
+    if (hasUpgrade("lp", 14)) exp = exp.times(1.07);
+
+    if (hasMilestone("l", 8)) exp = exp.pow(2);
     return exp;
   },
   row: 3, // Row the layer is in on the tree (0 is the first row)
@@ -602,6 +612,30 @@ addLayer("a", {
         let ret = 10;
         return ret;
       },
+    },
+    13: {
+      title: "Upgrade Power",
+      description: "Each ascension upgrade adds +^0.01 points.",
+      cost: new Decimal(250e6),
+      unlocked() {
+        return hasMilestone("l", 7);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = new Decimal(0.01).times(player.a.upgrades.length);
+        return ret;
+      },
+      effectDisplay() {
+        return "^" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    14: {
+      title: "Antoher Unlock",
+      description: "Unlock a new buyable and keep all upgrades on ascension.",
+      cost: new Decimal(1.5e9),
+      unlocked() {
+        return hasMilestone("l", 7);
+      }, // The upgrade is only visible when this is true
     },
   },
   buyables: {
@@ -689,6 +723,189 @@ addLayer("a", {
       },
       purchaseLimit: new Decimal(6),
     },
+    13: {
+      title: "Point Tripler",
+      cost(x) {
+        return new Decimal(400e6).times(new Decimal.pow(1.4, x.pow(1.3)));
+      },
+      effect(x) {
+        // Effects of owning x of the items, x is a decimal
+
+        eff = new Decimal.pow(3, x);
+        return eff;
+      },
+      unlocked() {
+        return hasUpgrade("a", 14);
+      },
+      display() {
+        // Everything else displayed in the buyable button after the title
+        let data = tmp[this.layer].buyables[this.id];
+        return (
+          "Cost: " +
+          format(data.cost) +
+          " ascension points\n\
+        Amount: " +
+          player[this.layer].buyables[this.id] +
+          "/100\n\
+        X" +
+          format(data.effect) +
+          " point gain "
+        );
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(
+          this.layer,
+          this.id,
+          getBuyableAmount(this.layer, this.id).add(1)
+        );
+      },
+      purchaseLimit: new Decimal(100),
+    },
+  },
+});
+addLayer("lp", {
+  name: "loop power", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "LP", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+      points: new Decimal(0),
+    };
+  },
+  color: "Grey",
+  requires: new Decimal(9), // Can be a function that takes requirement increases into account
+  resource: "loop power", // Name of prestige currency
+  baseResource: "loops", // Name of resource prestige is based on
+  baseAmount() {
+    return player.l.points;
+  }, // Get the current amount of baseResource
+  type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.8, // Prestige currency exponent
+  gainMult() {
+    // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1);
+    if (hasUpgrade("lp", 13)) mult = mult.times(upgradeEffect("lp", 13));
+    if (hasUpgrade("lp", 14)) mult = mult.times(upgradeEffect("lp", 14));
+
+    return mult;
+  },
+  gainExp() {
+    // Calculate the exponent on main currency from bonuses
+    exp = new Decimal(1);
+
+    return exp;
+  },
+  row: 100, // Row the layer is in on the tree (0 is the first row)
+
+  layerShown() {
+    return false;
+  },
+  passiveGeneration() {
+    return hasMilestone("l", 9) ? 1 : 0;
+  },
+  doReset(resettingLayer) {
+    let keep = [];
+
+    if (layers[resettingLayer].row > this.row) layerDataReset("lp", keep);
+  },
+  upgrades: {
+    11: {
+      title: "Loop 11",
+      description: "Loop power boosts points.",
+      cost: new Decimal(40),
+      unlocked() {
+        return hasMilestone("l", 9);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.lp.points.add(1).pow(1.01);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    12: {
+      title: "Loop 12",
+      description: "Loop power boosts ascension points.",
+      cost: new Decimal(45),
+      unlocked() {
+        return hasUpgrade("lp", 11);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.lp.points.add(1).pow(0.75);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    13: {
+      title: "Loop 13",
+      description: "Loop power boosts itself.",
+      cost: new Decimal(50),
+      unlocked() {
+        return hasUpgrade("lp", 12);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.lp.points.add(1).pow(0.2);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    14: {
+      title: "Loop 14",
+      description:
+        "Ascension points boost loop power and ^1.07 ascension points.",
+      cost: new Decimal(200),
+      unlocked() {
+        return hasUpgrade("lp", 12);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.a.points.add(1).pow(0.02);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+  },
+  clickables: {
+    11: {
+      title: "Activate Layer",
+      display() {
+        return "Click me to buy upgrades and interact with this layer";
+      },
+      onClick() {
+        return doReset("lp");
+      },
+      canClick: true,
+      unlocked() {
+        return !hasUpgrade("lp", 11);
+      },
+    },
+  },
+  tabFormat: {
+    upgrades: {
+      content: [
+        "main-display",
+        "blank",
+        ["blank", "5px"], // Height
+
+        "upgrades",
+        "clickables",
+      ],
+    },
   },
 });
 addLayer("l", {
@@ -721,6 +938,8 @@ addLayer("l", {
     scaling = new Decimal(1);
     if (player.l.points.gte(4)) scaling = scaling.div(1.2);
     if (player.l.points.gte(6)) scaling = scaling.div(2.26);
+    if (player.l.points.gte(8)) scaling = scaling.div(1.1);
+    if (player.l.points.gte(9)) scaling = scaling.div(1.8);
 
     return scaling;
   },
@@ -764,6 +983,34 @@ addLayer("l", {
   },
   tabFormat: {
     loops: {
+      content: [
+        [
+          "display-text",
+          function () {
+            return "You are at loop " + formatWhole(player.l.points);
+          },
+          { "font-size": "32px" },
+        ],
+        "blank",
+        "prestige-button",
+        ["blank", "5px"], // Height
+        [
+          "display-text",
+          function () {
+            return "Loops reset everything but unlock new content";
+          },
+          { "font-size": "20px" },
+        ],
+        ["bar", "progressToNext"],
+        "milestones",
+      ],
+    },
+    "loop power": {
+      unlocked() {
+        return hasMilestone("l", 9);
+      },
+      embedLayer: "lp",
+
       content: [
         [
           "display-text",
@@ -838,7 +1085,23 @@ addLayer("l", {
       done() {
         return player[this.layer].points.gte(7);
       }, // Used to determine when to give the milestone
-      effectDescription: "You've beaten the game for now...",
+      effectDescription:
+        "Raise ascension points to ^1.2 and keep all challenges on row 2 & 3 resets. Unlock more ascension upgrades and prestige is only reset on loop.",
+    },
+    8: {
+      requirementDescription: "Loop VIII",
+      done() {
+        return player[this.layer].points.gte(8);
+      }, // Used to determine when to give the milestone
+      effectDescription:
+        "Generate rebirth and upgrade points and keep rebirth upgrades on ascension. Square ascension point exponent.",
+    },
+    9: {
+      requirementDescription: "Loop IX",
+      done() {
+        return player[this.layer].points.gte(9);
+      }, // Used to determine when to give the milestone
+      effectDescription: "Unlock loop power, a sub tab in loops layer.",
     },
   },
   tooltip() {
@@ -962,7 +1225,7 @@ addLayer("ach", {
       tooltip: "Buy 3 rows of the upgrade point tree.",
     },
     34: {
-      name: "It's Time For Row 31",
+      name: "It's Time For Row 3",
       done() {
         return player.a.points.gte(1);
       },
@@ -974,6 +1237,34 @@ addLayer("ach", {
         return hasUpgrade("a", 12);
       },
       tooltip: "Unlock the first 2 buyables.",
+    },
+    41: {
+      name: "The Lucky Number",
+      done() {
+        return hasMilestone("l", 7);
+      },
+      tooltip: "Get loop VII.",
+    },
+    42: {
+      name: "Carpaltunnel Prevention",
+      done() {
+        return hasUpgrade("a", 14);
+      },
+      tooltip: "Buy the 4th ascension upgrade.",
+    },
+    43: {
+      name: "'The Ninth Dimension Doesn't Exist...'",
+      done() {
+        return hasMilestone("l", 9);
+      },
+      tooltip: "Get loop IX.",
+    },
+    44: {
+      name: "How Many Of These Are There?",
+      done() {
+        return hasUpgrade("lp", 13);
+      },
+      tooltip: "Buy 3 loop upgrades.",
     },
   },
 });
