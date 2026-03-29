@@ -13,11 +13,22 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.2",
-  name: "Ascending From Heaven",
+  num: "1.3",
+  name: "Powered Loops",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
+		- Added loops VII, VIII, and IX<br>
+		- Added a sub-layer, loop power<br>
+    - Added a buyable<br>
+		- Added 4 achievements<br>
+		- Added some more minor loop scalings <br>
+		- Added some upgrades <br>
+		- Fixed some typos <br>
+		- Added the 'idle' tag in galaxy <br>
+
+
 <h3><br>v1.2 - Ascending From Heaven - 3/28/2026</h3><br>
 		- Added loop VI<br>
 		- Added a new layer, ascension<br>
@@ -97,10 +108,14 @@ function getPointGen() {
   if (hasUpgrade("a", 11)) gain = gain.times(upgradeEffect("a", 11));
   if (hasUpgrade("a", 12)) gain = gain.times(upgradeEffect("a", 12));
   gain = gain.times(buyableEffect("a", 11));
+  gain = gain.times(buyableEffect("a", 13));
+  if (hasUpgrade("lp", 11)) gain = gain.times(upgradeEffect("lp", 11));
+
   if (inChallenge("p", 11)) gain = gain.div(20);
   if (inChallenge("r", 11)) gain = gain.sqrt();
 
   exp = new Decimal(1);
+  if (hasUpgrade("a", 13)) exp = exp.add(upgradeEffect("a", 13));
 
   if (hasUpgrade("u", 11)) exp = exp.times(1.04);
   return gain.pow(exp);
@@ -114,7 +129,7 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69)) return "Current endgame: reach loop 7";
+    if (!player.points.eq(-69)) return "Current endgame: reach loop 6";
   },
 ];
 
