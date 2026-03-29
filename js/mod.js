@@ -21,7 +21,7 @@ let changelog = `<h1>Changelog:</h1><br>
 <h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
 		- Added loops VII, VIII, and IX<br>
 		- Added a sub-layer, loop power<br>
-    - Added a buyable<br>
+        - Added a buyable<br>
 		- Added 4 achievements<br>
 		- Added some more minor loop scalings <br>
 		- Added some upgrades <br>
