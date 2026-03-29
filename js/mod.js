@@ -129,13 +129,13 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69)) return "Current endgame: reach loop 6";
+    if (!player.points.eq(-69)) return "Current endgame: loop 9 and 2,500 loop power";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return hasMilestone("l", 7);
+  return player.lp.points.gte(2500);
 }
 
 // Less important things beyond this point!
