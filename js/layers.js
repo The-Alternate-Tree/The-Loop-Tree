@@ -791,12 +791,15 @@ addLayer("lp", {
     mult = new Decimal(1);
     if (hasUpgrade("lp", 13)) mult = mult.times(upgradeEffect("lp", 13));
     if (hasUpgrade("lp", 14)) mult = mult.times(upgradeEffect("lp", 14));
+    if (hasUpgrade("lp", 15)) mult = mult.times(upgradeEffect("lp", 15));
+    if (hasUpgrade("lp", 21)) mult = mult.times(buyableEffect("lp", 11));
 
     return mult;
   },
   gainExp() {
     // Calculate the exponent on main currency from bonuses
     exp = new Decimal(1);
+    if (hasUpgrade("lp", 23)) exp = exp.times(1.15);
 
     return exp;
   },
@@ -856,6 +859,7 @@ addLayer("lp", {
       effect() {
         // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
         let ret = player.lp.points.add(1).pow(0.2);
+        if (hasUpgrade("lp", 22)) ret = player.lp.points.add(1).pow(0.4);
         return ret;
       },
       effectDisplay() {
@@ -868,7 +872,7 @@ addLayer("lp", {
         "Ascension points boost loop power and ^1.07 ascension points.",
       cost: new Decimal(200),
       unlocked() {
-        return hasUpgrade("lp", 12);
+        return hasUpgrade("lp", 13);
       }, // The upgrade is only visible when this is true
       effect() {
         // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
@@ -878,6 +882,90 @@ addLayer("lp", {
       effectDisplay() {
         return "*" + format(this.effect()) + "";
       }, // Add formatting to the effect
+    },
+    15: {
+      title: "Loop 15",
+      description: "Each loop upgrade doubles loop power.",
+      cost: new Decimal(1400),
+      unlocked() {
+        return hasUpgrade("lp", 14);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = new Decimal.pow(2, player.lp.upgrades.length);
+        return ret;
+      },
+      effectDisplay() {
+        return "*" + format(this.effect()) + "";
+      }, // Add formatting to the effect
+    },
+    21: {
+      title: "Loop 21",
+      description: "Unlock a buyable.",
+      cost: new Decimal(225000),
+      unlocked() {
+        return hasUpgrade("lp", 15);
+      }, // The upgrade is only visible when this is true
+    },
+    22: {
+      title: "Loop 22",
+      description: "Loop 13 uses a better formula.",
+      cost: new Decimal(1e6),
+      unlocked() {
+        return hasUpgrade("lp", 21);
+      }, // The upgrade is only visible when this is true
+    },
+    23: {
+      title: "Loop 23",
+      description: "Raise loop power to ^1.15.",
+      cost: new Decimal(500e6),
+      unlocked() {
+        return hasUpgrade("lp", 22);
+      }, // The upgrade is only visible when this is true
+    },
+  },
+  buyables: {
+    11: {
+      title: "Small Loop Power Multiplier",
+      cost(x) {
+        return new Decimal(50000).times(new Decimal.pow(1.8, x.pow(1.18)));
+      },
+      effect(x) {
+        // Effects of owning x of the items, x is a decimal
+
+        eff = new Decimal.pow(1.25, x);
+        return eff;
+      },
+      unlocked() {
+        return hasUpgrade("lp", 21);
+      },
+      display() {
+        // Everything else displayed in the buyable button after the title
+        let data = tmp[this.layer].buyables[this.id];
+        return (
+          "Cost: " +
+          format(data.cost) +
+          " loop power\n\
+        Amount: " +
+          player[this.layer].buyables[this.id] +
+          "/2,500\n\
+        X" +
+          format(data.effect) +
+          " loop power gain "
+        );
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(
+          this.layer,
+          this.id,
+          getBuyableAmount(this.layer, this.id).add(1)
+        );
+      },
+      purchaseLimit: new Decimal(2500),
     },
   },
   clickables: {
@@ -904,6 +992,15 @@ addLayer("lp", {
 
         "upgrades",
         "clickables",
+      ],
+    },
+    buyables: {
+      content: [
+        "main-display",
+        "blank",
+        ["blank", "5px"], // Height
+
+        "buyables",
       ],
     },
   },
@@ -940,6 +1037,7 @@ addLayer("l", {
     if (player.l.points.gte(6)) scaling = scaling.div(2.26);
     if (player.l.points.gte(8)) scaling = scaling.div(1.1);
     if (player.l.points.gte(9)) scaling = scaling.div(1.8);
+    if (player.l.points.gte(10)) scaling = scaling.div(1.18);
 
     return scaling;
   },
@@ -1103,6 +1201,13 @@ addLayer("l", {
       }, // Used to determine when to give the milestone
       effectDescription: "Unlock loop power, a sub tab in loops layer.",
     },
+    10: {
+      requirementDescription: "Loop X",
+      done() {
+        return player[this.layer].points.gte(10);
+      }, // Used to determine when to give the milestone
+      effectDescription: "Coming Soon...",
+    },
   },
   tooltip() {
     return (
@@ -1265,6 +1370,13 @@ addLayer("ach", {
         return hasUpgrade("lp", 13);
       },
       tooltip: "Buy 3 loop upgrades.",
+    },
+    45: {
+      name: "Multi-Digit Loops!",
+      done() {
+        return player.lp.points.gte(10);
+      },
+      tooltip: "Reach loop X.",
     },
   },
 });
