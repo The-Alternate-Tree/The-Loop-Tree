@@ -520,7 +520,7 @@ addLayer("u", {
         [
           "display-text",
           function () {
-            return "Be careful! Upgrade costs increase based on the amount of upgrade point upgrades you've bought and you can't respect them.";
+            return "Be careful! Upgrade costs increase based on the amount of upgrade point upgrades you've bought and you can't respec them.";
           },
           { "font-size": "17px" },
         ],
