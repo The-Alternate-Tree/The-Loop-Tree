@@ -21,7 +21,7 @@ let changelog = `<h1>Changelog:</h1><br>
 <h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
 		- Added loops VII, VIII, and IX<br>
 		- Added a sub-layer, loop power<br>
-        - Added a buyable<br>
+    - Added a buyable<br>
 		- Added 4 achievements<br>
 		- Added some more minor loop scalings <br>
 		- Added some upgrades <br>
@@ -129,13 +129,14 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69)) return "Current endgame: loop 9 and 2,500 loop power";
+    if (!player.points.eq(-69))
+      return "Current endgame: Reach loop 10";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return player.lp.points.gte(2500);
+  return hasMilestone("l", 10);
 }
 
 // Less important things beyond this point!
