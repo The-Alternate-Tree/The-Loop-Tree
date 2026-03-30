@@ -21,6 +21,7 @@ let changelog = `<h1>Changelog:</h1><br>
 <h3><br>v1.31 - X-Loop - 3/30/2026</h3><br>
     - Added loop X <br>
     - Added 4 loop power upgrades <br>
+	- Added a buyable <br>
     - Fixed a typo
 <h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
 		- Added loops VII, VIII, and IX<br>
