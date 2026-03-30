@@ -13,11 +13,15 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.3",
-  name: "Powered Loops",
+  num: "1.31",
+  name: "X-Loop",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.31 - X-Loop - 3/30/2026</h3><br>
+    - Added loop X <br>
+    - Added 4 loop power upgrades <br>
+    - Fixed a typo
 <h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
 		- Added loops VII, VIII, and IX<br>
 		- Added a sub-layer, loop power<br>
@@ -129,8 +133,7 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69))
-      return "Current endgame: Reach loop 10";
+    if (!player.points.eq(-69)) return "Current endgame: Reach loop 10";
   },
 ];
 
