@@ -13,16 +13,27 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.31",
-  name: "X-Loop",
+  num: "1.4",
+  name: "Broken Inflation",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.4 - Broken Inflation - 3/31/2026</h3><br>
+    - Added loop XI <br>
+    - Added 18 upgrades <br>
+    - Added 5 buyables <br>
+    - Added a new layer, shards <br>
+    - Added 9 achievements <br>
+    - Added a challenge <br>
+    - Added some loop scallings <br>
+    - Added some softcaps <br>
+    - Added inflation <br>
+
+
 <h3><br>v1.31 - X-Loop - 3/30/2026</h3><br>
     - Added loop X <br>
     - Added 4 loop power upgrades <br>
-	- Added a buyable <br>
-    - Fixed a typo
+    - Fixed a typo <br>
 <h3><br>v1.3 - Powered Loops - 3/29/2026</h3><br>
 		- Added loops VII, VIII, and IX<br>
 		- Added a sub-layer, loop power<br>
@@ -123,7 +134,12 @@ function getPointGen() {
   if (hasUpgrade("a", 13)) exp = exp.add(upgradeEffect("a", 13));
 
   if (hasUpgrade("u", 11)) exp = exp.times(1.04);
-  return gain.pow(exp);
+  if (hasUpgrade("s", 11)) exp = exp.times(1.07);
+
+  gain = gain.pow(exp);
+
+  if (inChallenge("lp", 11)) gain = gain.cbrt();
+  return gain;
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
@@ -134,13 +150,14 @@ function addedPlayerData() {
 // Display extra things at the top of the page
 var displayThings = [
   function () {
-    if (!player.points.eq(-69)) return "Current endgame: Reach loop 10";
+    if (!player.points.eq(-69))
+      return "Current endgame: Get 1e15875 loop power";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return hasMilestone("l", 10);
+  return player.lp.points.gte(1e15875);
 }
 
 // Less important things beyond this point!
