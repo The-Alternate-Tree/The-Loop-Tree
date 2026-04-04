@@ -2258,3 +2258,239 @@ addLayer("ach", {
     },
   },
 });
+addLayer("mg", {
+  name: "mini game", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "🕹️", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+    };
+  },
+  color: "white",
+
+  type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+
+  row: "side", // Row the layer is in on the tree (0 is the first row)
+
+  layerShown() {
+    return true;
+  },
+
+  tabFormat: {
+    alpha: {
+      embedLayer: "mga",
+
+      content: [
+        "blank",
+        "prestige-button",
+        ["blank", "5px"], // Height
+      ],
+    },
+    beta: {
+      unlocked() {
+        return hasUpgrade("mga", 14) || player.mgb.unlocked;
+      },
+      embedLayer: "mgb",
+
+      content: [
+        "blank",
+        "prestige-button",
+        ["blank", "5px"], // Height
+      ],
+    },
+  },
+
+  tooltip() {
+    return "minigame";
+  },
+});
+addLayer("mga", {
+  name: "alpha", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "a", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+      points: new Decimal(0),
+    };
+  },
+  color: "red",
+  requires: new Decimal(1), // Can be a function that takes requirement increases into account
+  resource: "alpha", // Name of prestige currency
+  baseResource: "loops", // Name of resource prestige is based on
+  baseAmount() {
+    return player.l.points;
+  }, // Get the current amount of baseResource
+  type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.00001, // Prestige currency exponent
+  gainMult() {
+    // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1);
+    if (hasUpgrade("mga", 11)) mult = mult.times("3");
+    if (hasUpgrade("mga", 12)) mult = mult.times(upgradeEffect("mga", 12));
+    if (hasUpgrade("mga", 13)) mult = mult.times("4");
+    if (hasUpgrade("mgb", 11)) mult = mult.times("2.5");
+
+    return mult;
+  },
+  gainExp() {
+    // Calculate the exponent on main currency from bonuses
+    exp = new Decimal(1);
+
+    return exp;
+  },
+  row: "side", // Row the layer is in on the tree (0 is the first row)
+
+  layerShown() {
+    return false;
+  },
+  passiveGeneration() {
+    return player.points.gte(0) ? 1 : 0;
+  },
+  doReset(resettingLayer) {
+    let keep = [];
+
+    if (layers[resettingLayer].row > this.row) layerDataReset("mga", keep);
+  },
+  softcap: new Decimal("1.78e308"),
+  softcapPower: new Decimal(0.8),
+  upgrades: {
+    11: {
+      title: "Alpha 1",
+      description: "Triple alpha gain.",
+      cost: new Decimal(10),
+      unlocked() {
+        return true;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 3;
+        return ret;
+      },
+    },
+    12: {
+      title: "Alpha 2",
+      description: "Alpha boosts alpha.",
+      cost: new Decimal(50),
+      unlocked() {
+        return hasUpgrade("mga", 11);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = player.mga.points.add(1).pow(0.3);
+        return ret;
+      },
+    },
+    13: {
+      title: "Alpha 3",
+      description: "Quadruple alpha gain.",
+      cost: new Decimal(250),
+      unlocked() {
+        return hasUpgrade("mga", 12);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 4;
+        return ret;
+      },
+    },
+    14: {
+      title: "Alpha 4",
+      description: "Unlock beta.",
+      cost: new Decimal(1000),
+      unlocked() {
+        return hasUpgrade("mga", 13);
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 4;
+        return ret;
+      },
+    },
+  },
+  tabFormat: {
+    upgrades: {
+      content: [
+        "main-display",
+        "blank",
+        ["blank", "5px"], // Height
+
+        "upgrades",
+      ],
+    },
+  },
+});
+addLayer("mgb", {
+  name: "beta", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "b", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  startData() {
+    return {
+      unlocked: true,
+      points: new Decimal(0),
+    };
+  },
+  color: "blue",
+  requires: new Decimal(2500), // Can be a function that takes requirement increases into account
+  resource: "beta", // Name of prestige currency
+  baseResource: "alpha", // Name of resource prestige is based on
+  baseAmount() {
+    return player.mga.points;
+  }, // Get the current amount of baseResource
+  type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  exponent: 0.5, // Prestige currency exponent
+  gainMult() {
+    // Calculate the multiplier for main currency from bonuses
+    mult = new Decimal(1);
+
+    return mult;
+  },
+  gainExp() {
+    // Calculate the exponent on main currency from bonuses
+    exp = new Decimal(1);
+
+    return exp;
+  },
+  row: "side", // Row the layer is in on the tree (0 is the first row)
+
+  layerShown() {
+    return false;
+  },
+  passiveGeneration() {
+    return hasUpgrade("mga", 14) ? 1 : 0;
+  },
+  doReset(resettingLayer) {
+    let keep = [];
+
+    if (layers[resettingLayer].row > this.row) layerDataReset("mgb", keep);
+  },
+  softcap: new Decimal("1.78e308"),
+  softcapPower: new Decimal(0.8),
+  upgrades: {
+    11: {
+      title: "Beta 1",
+      description: "X2.5 alpha gain.",
+      cost: new Decimal(1),
+      unlocked() {
+        return true;
+      }, // The upgrade is only visible when this is true
+      effect() {
+        // Calculate bonuses from the upgrade. Can return a single value or an object with multiple values
+        let ret = 2.5;
+        return ret;
+      },
+    },
+  },
+  tabFormat: {
+    upgrades: {
+      content: [
+        "main-display",
+        "blank",
+        ["blank", "5px"], // Height
+
+        "upgrades",
+      ],
+    },
+  },
+});

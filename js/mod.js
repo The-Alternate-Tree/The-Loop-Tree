@@ -13,11 +13,18 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.41",
-  name: "Leveled Up",
+  num: "1.42",
+  name: "Minigame",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.42 - Minigame - 4/4/2026</h3><br>
+   
+  
+    - Added the minigame layer, which has 5 upgrades and 2 layers <br>
+    - Changed how layer nodes look <br>
+    - Bought Upgrades now grow when hovered over <br>
+
 <h3><br>v1.41 - Leveled Up - 4/4/2026</h3><br>
    
     - Added a new layer, levels <br>
