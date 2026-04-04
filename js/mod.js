@@ -13,11 +13,24 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "1.4",
-  name: "Broken Inflation",
+  num: "1.41",
+  name: "Leveled Up",
 };
 
 let changelog = `<h1>Changelog:</h1><br>
+<h3><br>v1.41 - Leveled Up - 4/4/2026</h3><br>
+   
+    - Added a new layer, levels <br>
+    - Added 9 upgrades <br>
+    - Added 1 buyable <br>
+    - Added 4 milestones <br>
+    - Added 4 achievements <br>
+    - Added a bar that shows the amount of achievements you have <br>
+    - Removed the old loop buyable 23 due to forgetting to make it do anything <br>
+    - Achievements layer now shows a tab <br>
+    - Small changes to V0.0's display <br>
+
+
 <h3><br>v1.4 - Broken Inflation - 3/31/2026</h3><br>
     - Added loop XI <br>
     - Added 18 upgrades <br>
@@ -76,12 +89,11 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added a few milestones<br>
 		- Added a bar that shows progress to next loop<br>
 		- Added a challenge<br>
-		<h3><br>v0.0</h3><br>
-	
-		- Added things.<br>
-		- Added stuff.<br>
 
 
+
+		<h3><br>v0.0 - Literally Nothing</h3><br>
+		- Literally Nothing 
 
 
 		`;
@@ -126,6 +138,11 @@ function getPointGen() {
   gain = gain.times(buyableEffect("a", 11));
   gain = gain.times(buyableEffect("a", 13));
   if (hasUpgrade("lp", 11)) gain = gain.times(upgradeEffect("lp", 11));
+  if (hasUpgrade("s", 23)) gain = gain.times(upgradeEffect("s", 23));
+  if (hasUpgrade("s", 22)) gain = gain.times(upgradeEffect("s", 22));
+  if (hasMilestone("lv", 2)) gain = gain.times(1e10);
+  if (hasMilestone("lv", 3)) gain = gain.times(1e25);
+  if (hasUpgrade("lp", 61)) gain = gain.times(1e250);
 
   if (inChallenge("p", 11)) gain = gain.div(20);
   if (inChallenge("r", 11)) gain = gain.sqrt();
@@ -137,7 +154,9 @@ function getPointGen() {
   if (hasUpgrade("s", 11)) exp = exp.times(1.07);
 
   gain = gain.pow(exp);
+  tet = new Decimal(1);
 
+  gain = gain.tetrate(tet);
   if (inChallenge("lp", 11)) gain = gain.cbrt();
   return gain;
 }
@@ -151,13 +170,13 @@ function addedPlayerData() {
 var displayThings = [
   function () {
     if (!player.points.eq(-69))
-      return "Current endgame: Get 1e15875 loop power";
+      return "Current endgame: Get 1e175,737 loop power";
   },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return player.lp.points.gte(1e15875);
+  return player.lp.points.gte("1e175737");
 }
 
 // Less important things beyond this point!
